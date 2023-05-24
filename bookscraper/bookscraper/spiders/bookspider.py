@@ -7,6 +7,12 @@ class BookspiderSpider(scrapy.Spider):
     allowed_domains = ["books.toscrape.com"]
     start_urls = ["https://books.toscrape.com/"]
 
+    custom_settings = {
+        'FEEDS': {
+            'bookscraper.json': {'format': 'json', 'overwrite': True}
+        }
+    }
+
     def parse(self, response):
         books = response.css('article.product_pod')
 
@@ -32,7 +38,7 @@ class BookspiderSpider(scrapy.Spider):
 
     def parse_book_page(self, response):
         book_item = BookItem()
-        
+
         table_rows = response.css('table tr')
 
         book_item['url'] = response.url
@@ -45,8 +51,10 @@ class BookspiderSpider(scrapy.Spider):
         book_item['availability'] = table_rows[5].css("td::text").get()
         book_item['num_reviews'] = table_rows[6].css("td::text").get()
         book_item['stars'] = response.css("p.star-rating::attr(class)").get()
-        book_item['category'] = response.xpath("//ul[@class='breadcrumb']/li[@class='active']/preceding-sibling::li[1]/a/text()").get()
-        book_item['description'] = response.xpath("//div[@id='product_description']/following-sibling::p/text()").get()
+        book_item['category'] = response.xpath(
+            "//ul[@class='breadcrumb']/li[@class='active']/preceding-sibling::li[1]/a/text()").get()
+        book_item['description'] = response.xpath(
+            "//div[@id='product_description']/following-sibling::p/text()").get()
         book_item['price'] = response.css('p.price_color::text').get()
 
         yield book_item
